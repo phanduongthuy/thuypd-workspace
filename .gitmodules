@@ -1,0 +1,9 @@
+[submodule "admin.thuypd.site"]
+	path = admin.thuypd.site
+	url = https://github.com/phanduongthuy/admin.thuypd.site.git
+[submodule "api.thuypd.site"]
+	path = api.thuypd.site
+	url = https://github.com/phanduongthuy/api.thuypd.site.git
+[submodule "thuypd.site"]
+	path = thuypd.site
+	url = https://github.com/phanduongthuy/thuypd.site.git
