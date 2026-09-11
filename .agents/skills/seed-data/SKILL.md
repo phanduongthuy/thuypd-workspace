@@ -22,12 +22,21 @@ npm run seed
 3. `DATABASE_NAME` đã được set (default: `thuypd_site`)
 
 ### Dữ liệu được seed:
+- **RBAC (Dynamic Roles & Permissions)** — Danh mục nhóm chức năng và chi tiết actions (`npm run seed:rbac`)
 - **User** — Tài khoản admin mặc định
 - **Themes** — Mẫu giao diện website (ecommerce, corporate, realestate, spa...)
 - **Services** — Danh sách dịch vụ thiết kế web
 - **Pricing** — Bảng giá các gói dịch vụ
 - **Settings** — Cài đặt hệ thống mặc định
 - **LandingConfig** — Cấu hình landing page mặc định
+
+### Seed Phân Quyền Động (RBAC):
+Mỗi khi bổ sung Module (Chức năng) hoặc Action mới vào file `api.thuypd.site/src/config/rbac.config.ts`:
+```bash
+cd api.thuypd.site
+npm run seed:rbac
+```
+Hoặc đăng nhập với vai trò `super_admin` trên Admin CMS Portal và bấm nút **"Đồng Bộ Quyền (Config)"** trực tiếp tại trang Quản lý Người Dùng.
 
 ### Lưu ý:
 - Script seed sẽ **KHÔNG** xóa dữ liệu hiện có (upsert pattern)
