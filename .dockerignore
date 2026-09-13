@@ -1,0 +1,9 @@
+# Workspace-Level .dockerignore
+**/node_modules
+**/.next
+**/dist
+**/.git
+**/.github
+**/.DS_Store
+**/*.log
+**/.env*

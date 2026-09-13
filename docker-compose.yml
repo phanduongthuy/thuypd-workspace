@@ -1,0 +1,98 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: thuypd_mongodb
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_MONGO:-27017}:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=thuypd_site
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - thuypd-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: thuypd_api
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_API:-5001}:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      DATABASE_URI: ${INTERNAL_DATABASE_URI:-mongodb://mongodb:27017/thuypd_site}
+      DATABASE_NAME: thuypd_site
+      CLIENT_ORIGINS: ${CLIENT_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3002}
+      JWT_SECRET: ${JWT_SECRET:-docker_secure_jwt_secret_thuypd_2026}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      ADMIN_DEFAULT_USER: ${ADMIN_DEFAULT_USER:-admin}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-admin123}
+      ADMIN_DEFAULT_EMAIL: ${ADMIN_DEFAULT_EMAIL:-admin@thuypd.local}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - thuypd-network
+
+  client:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+      args:
+        BACKEND_API_URL: ${INTERNAL_API_URL:-http://api:5000}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    container_name: thuypd_client
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_CLIENT:-3000}:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      BACKEND_API_URL: ${INTERNAL_API_URL:-http://api:5000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    depends_on:
+      - api
+    networks:
+      - thuypd-network
+
+  admin:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.admin
+      args:
+        BACKEND_API_URL: ${INTERNAL_API_URL:-http://api:5000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    container_name: thuypd_admin
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_ADMIN:-3002}:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      BACKEND_API_URL: ${INTERNAL_API_URL:-http://api:5000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      ADMIN_DEFAULT_USER: ${ADMIN_DEFAULT_USER:-admin}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-admin123}
+    depends_on:
+      - api
+    networks:
+      - thuypd-network
+
+networks:
+  thuypd-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
